@@ -22,53 +22,60 @@
             color: var(--crt-green);
         }
 
-        /* 1. The Main Container */
-        /* This holds both the image and the timer */
         #game-container {
-            position: relative; /* Allows us to position things inside it absolutely */
+            position: relative;
             width: 100%;
-            max-width: 800px; /* Limits size on big screens */
+            max-width: 800px; 
         }
 
-        /* 2. The Background Image */
         #bg-image {
             width: 100%;
             height: auto;
-            display: block; /* Removes weird bottom spacing */
+            display: block;
         }
 
-        /* 3. The Timer Overlay "Zone" */
-        /* This is the invisible box we place OVER the TV screen in the picture */
+        /* --- THE TIMER OVERLAY --- */
         #crt-screen {
             position: absolute;
             
-            /* --- ALIGNMENT SETTINGS (Tweak these if it doesn't fit!) --- */
-            top: 46%;    /* Distance from top of image */
-            left: 14%;   /* Distance from left of image */
-            width: 70%;  /* Width of the TV screen area */
-            height: 40%; /* Height of the TV screen area */
-            /* ----------------------------------------------------------- */
+            /* YOUR CUSTOM ALIGNMENT SETTINGS */
+            top: 46%;
+            left: 14%;
+            width: 70%;
+            height: 40%;
+            /* --------------------------- */
 
-            /* DEBUG MODE: Keeps a red outline so you can see the fit. 
-               Change '2px solid red' to 'none' when finished! */
-            border: 2px solid red; 
+            /* TRANSPARENCY FIX:
+               Changed from rgba(...) to transparent so we don't cover the fingers */
+            background-color: transparent; 
             
-            /* Visual Styling */
-            background-color: rgba(0, 20, 0, 0.7); /* Darkens the screen area slightly */
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            padding: 2% 4%; /* Inner spacing so text doesn't hit the bezel */
-            box-sizing: border-box; 
-            text-shadow: 0 0 5px var(--crt-green); /* Glow effect */
+            justify-content: center; /* Centers content vertically */
+            align-items: center;     /* Centers content horizontally */
+            
+            /* Debug border - remove the line below when perfectly happy! */
+            /* border: 1px solid red; */
+            
+            text-shadow: 0 0 4px var(--crt-green); /* Slight glow */
         }
 
-        /* Setup Inputs Styling */
+        /* SETUP SCREEN STYLES */
+        #setup-area {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
         .setup-controls {
             display: flex;
-            justify-content: space-between;
-            font-size: 3vw; /* Responsive font size based on screen width */
-            gap: 5px;
+            justify-content: space-evenly;
+            width: 100%;
+            font-size: 3vw; 
+            margin-bottom: 2%; /* Spacing between inputs and start button */
         }
 
         .input-group {
@@ -77,25 +84,81 @@
             align-items: center;
         }
 
-        /* Responsive Inputs */
         input[type="number"] {
-            background: rgba(0,0,0,0.5);
+            background: rgba(0, 0, 0, 0.6); /* Semi-transparent background for readability */
             border: 1px solid var(--crt-green);
             color: var(--crt-green);
             font-family: 'VT323', monospace;
             font-size: 3vw; 
-            width: 8vw;
+            width: 9vw;
             text-align: center;
         }
-        
+
+        /* RETRO CHECKBOX STYLES */
         .checkbox-group {
              display: flex;
              flex-direction: column;
              align-items: center;
              font-size: 2.5vw;
+             cursor: pointer;
+        }
+        
+        /* Hide the default messy browser checkbox */
+        input[type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 3vw;
+            height: 3vw;
+            background-color: rgba(0,0,0,0.6);
+            border: 2px solid var(--crt-green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+        
+        /* When checked, fill it with green or show an X */
+        input[type="checkbox"]:checked {
+            background-color: var(--crt-green);
+            box-shadow: inset 0 0 5px #000;
+        }
+        
+        /* Optional: Add an 'X' or checkmark inside via pseudo-element */
+        input[type="checkbox"]:checked::after {
+            content: '';
+            display: block;
+            width: 1.5vw;
+            height: 1.5vw;
+            background-color: black; 
         }
 
-        /* Main Display Text */
+        /* WORKOUT SCREEN STYLES */
+        #workout-area {
+            height: 100%; 
+            width: 100%;
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-between; /* Spreads items to top/center/bottom */
+            align-items: center;
+            padding: 1% 0; /* Tiny padding to prevent edge touching */
+        }
+
+        #rounds-tracker {
+            font-size: 3vw;
+            text-align: center;
+            margin-top: 1%; /* Pushes it down slightly from top bezel */
+        }
+
+        #main-display {
+            flex-grow: 1; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center;
+            align-items: center;
+            line-height: 1; /* Tights line height to prevent gaps */
+        }
+
         #status-label {
             font-size: 5vw; 
             text-align: center;
@@ -103,14 +166,11 @@
         }
 
         #time-remaining {
-            font-size: 14vw; /* Massive text for the timer */
+            /* OVERFLOW FIX: Reduced size from 14vw to 10vw to fit the 40% height */
+            font-size: 11vw; 
             line-height: 0.9;
             text-align: center;
-        }
-
-        #rounds-tracker {
-            font-size: 3vw;
-            text-align: center;
+            margin-bottom: 2%;
         }
 
         /* Buttons */
@@ -119,15 +179,19 @@
             color: black;
             border: none;
             font-family: 'VT323', monospace;
-            font-size: 3vw;
-            padding: 1% 4%;
+            font-size: 3.5vw;
+            padding: 0.5% 3%;
             cursor: pointer;
             text-transform: uppercase;
+            margin-bottom: 1%; /* Keeps it off the absolute bottom edge */
+        }
+        
+        button:hover {
+            background: white;
         }
         
         .hidden { display: none !important; }
 
-        /* Blink Animation */
         @keyframes fast-blink {
             0% { opacity: 1; }
             50% { opacity: 0; }
@@ -158,20 +222,20 @@
                         <label>RNDS</label>
                         <input type="number" id="rounds-in" value="8">
                     </div>
-                    <div class="checkbox-group">
-                        <label>DELAY</label>
+                    <label class="checkbox-group">
+                        DELAY
                         <input type="checkbox" id="delay-in" checked>
-                    </div>
+                    </label>
                 </div>
-                <div style="text-align: center; margin-top: 5%;">
+                <div style="text-align: center;">
                     <button id="start-btn">INITIALIZE</button>
                 </div>
             </div>
 
-            <div id="workout-area" class="hidden" style="height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
+            <div id="workout-area" class="hidden">
                  <div id="rounds-tracker">RND: <span id="curr-round">1</span>/<span id="total-rounds-disp">8</span></div>
                  
-                 <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center;">
+                 <div id="main-display">
                     <div id="status-label">READY</div>
                     <div id="time-remaining">00</div>
                  </div>
@@ -185,7 +249,6 @@
     </div>
 
     <script>
-        /* --- SAME JAVASCRIPT LOGIC AS BEFORE --- */
         let workSecs, restSecs, totalRounds;
         let currentRound = 1;
         let isWorking = true;
@@ -293,10 +356,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
