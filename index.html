@@ -38,26 +38,24 @@
         #crt-screen {
             position: absolute;
             
-            /* YOUR CUSTOM ALIGNMENT SETTINGS */
+            /* YOUR ALIGNMENT SETTINGS */
             top: 46%;
             left: 14%;
             width: 70%;
             height: 40%;
-            /* --------------------------- */
-
-            /* TRANSPARENCY FIX:
-               Changed from rgba(...) to transparent so we don't cover the fingers */
+            
             background-color: transparent; 
+            
+            /* PADDING FIX: Adds space on left/right so inputs aren't on the edge */
+            padding: 0 5%; 
+            box-sizing: border-box; 
             
             display: flex;
             flex-direction: column;
-            justify-content: center; /* Centers content vertically */
-            align-items: center;     /* Centers content horizontally */
+            justify-content: center;
+            align-items: center;
             
-            /* Debug border - remove the line below when perfectly happy! */
-            /* border: 1px solid red; */
-            
-            text-shadow: 0 0 4px var(--crt-green); /* Slight glow */
+            text-shadow: 0 0 4px var(--crt-green);
         }
 
         /* SETUP SCREEN STYLES */
@@ -72,10 +70,10 @@
 
         .setup-controls {
             display: flex;
-            justify-content: space-evenly;
+            justify-content: space-between; /* Spreads inputs evenly */
+            align-items: flex-end; /* Aligns bottoms of inputs */
             width: 100%;
-            font-size: 3vw; 
-            margin-bottom: 2%; /* Spacing between inputs and start button */
+            margin-bottom: 3%; 
         }
 
         .input-group {
@@ -83,9 +81,15 @@
             flex-direction: column;
             align-items: center;
         }
+        
+        /* Label styling */
+        .input-group label {
+            font-size: 3vw;
+            margin-bottom: 2px;
+        }
 
         input[type="number"] {
-            background: rgba(0, 0, 0, 0.6); /* Semi-transparent background for readability */
+            background: rgba(0, 0, 0, 0.6); 
             border: 1px solid var(--crt-green);
             color: var(--crt-green);
             font-family: 'VT323', monospace;
@@ -99,18 +103,25 @@
              display: flex;
              flex-direction: column;
              align-items: center;
-             font-size: 2.5vw;
              cursor: pointer;
         }
+
+        /* Smaller font for the longer text */
+        .checkbox-group label {
+            font-size: 2vw; /* Smaller text for "INITIAL DELAY" */
+            margin-bottom: 2px;
+            text-align: center;
+            line-height: 1;
+        }
         
-        /* Hide the default messy browser checkbox */
+        /* Smaller Checkbox */
         input[type="checkbox"] {
             appearance: none;
             -webkit-appearance: none;
-            width: 3vw;
-            height: 3vw;
+            width: 2vw;   /* Smaller size */
+            height: 2vw;  /* Smaller size */
             background-color: rgba(0,0,0,0.6);
-            border: 2px solid var(--crt-green);
+            border: 1px solid var(--crt-green);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -118,36 +129,59 @@
             margin-top: 5px;
         }
         
-        /* When checked, fill it with green or show an X */
         input[type="checkbox"]:checked {
             background-color: var(--crt-green);
-            box-shadow: inset 0 0 5px #000;
+            box-shadow: inset 0 0 3px #000;
         }
-        
-        /* Optional: Add an 'X' or checkmark inside via pseudo-element */
-        input[type="checkbox"]:checked::after {
-            content: '';
-            display: block;
-            width: 1.5vw;
-            height: 1.5vw;
-            background-color: black; 
+
+        /* START BUTTON */
+        #start-btn {
+            background: var(--crt-green);
+            color: black;
+            border: none;
+            font-family: 'VT323', monospace;
+            font-size: 3.5vw;
+            padding: 0.5% 3%;
+            cursor: pointer;
+            text-transform: uppercase;
         }
+        #start-btn:hover { background: white; }
 
         /* WORKOUT SCREEN STYLES */
         #workout-area {
+            position: relative; /* Needed for absolute positioning the reset button */
             height: 100%; 
             width: 100%;
             display: flex; 
             flex-direction: column; 
-            justify-content: space-between; /* Spreads items to top/center/bottom */
+            justify-content: center;
             align-items: center;
-            padding: 1% 0; /* Tiny padding to prevent edge touching */
+        }
+
+        /* Reset Button - MOVED TO TOP RIGHT */
+        #reset-btn {
+            position: absolute;
+            top: 0;
+            right: -2%; /* Pushed slightly to the right edge */
+            background: transparent;
+            color: var(--crt-green);
+            border: 1px solid var(--crt-green);
+            font-family: 'VT323', monospace;
+            font-size: 2vw; /* Smaller font */
+            padding: 2px 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            z-index: 10;
+        }
+        #reset-btn:hover {
+            background: var(--crt-green);
+            color: black;
         }
 
         #rounds-tracker {
             font-size: 3vw;
             text-align: center;
-            margin-top: 1%; /* Pushes it down slightly from top bezel */
+            margin-top: 4%; 
         }
 
         #main-display {
@@ -156,7 +190,7 @@
             flex-direction: column; 
             justify-content: center;
             align-items: center;
-            line-height: 1; /* Tights line height to prevent gaps */
+            line-height: 1; 
         }
 
         #status-label {
@@ -166,28 +200,10 @@
         }
 
         #time-remaining {
-            /* OVERFLOW FIX: Reduced size from 14vw to 10vw to fit the 40% height */
             font-size: 11vw; 
             line-height: 0.9;
             text-align: center;
             margin-bottom: 2%;
-        }
-
-        /* Buttons */
-        button {
-            background: var(--crt-green);
-            color: black;
-            border: none;
-            font-family: 'VT323', monospace;
-            font-size: 3.5vw;
-            padding: 0.5% 3%;
-            cursor: pointer;
-            text-transform: uppercase;
-            margin-bottom: 1%; /* Keeps it off the absolute bottom edge */
-        }
-        
-        button:hover {
-            background: white;
         }
         
         .hidden { display: none !important; }
@@ -222,10 +238,10 @@
                         <label>RNDS</label>
                         <input type="number" id="rounds-in" value="8">
                     </div>
-                    <label class="checkbox-group">
-                        DELAY
+                    <div class="checkbox-group">
+                        <label>INITIAL<br>DELAY</label>
                         <input type="checkbox" id="delay-in" checked>
-                    </label>
+                    </div>
                 </div>
                 <div style="text-align: center;">
                     <button id="start-btn">INITIALIZE</button>
@@ -233,15 +249,13 @@
             </div>
 
             <div id="workout-area" class="hidden">
+                 <button id="reset-btn">RESET</button>
+
                  <div id="rounds-tracker">RND: <span id="curr-round">1</span>/<span id="total-rounds-disp">8</span></div>
                  
                  <div id="main-display">
                     <div id="status-label">READY</div>
                     <div id="time-remaining">00</div>
-                 </div>
-
-                 <div style="text-align: center;">
-                    <button id="reset-btn">RESET</button>
                  </div>
             </div>
 
