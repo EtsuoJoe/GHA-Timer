@@ -46,10 +46,10 @@
             
             background-color: transparent; 
             
-            /* UPDATED PADDING: 
-               Increased right padding to 8% to push "Initial Delay" away from the bezel.
+            /* --- THE FIX IS HERE --- */
+            /* Increased right padding from 8% to 16% to force content inward.
                (top right bottom left) */
-            padding: 0 8% 0 5%; 
+            padding: 0 16% 0 5%; 
             box-sizing: border-box; 
             
             display: flex;
@@ -105,7 +105,6 @@
              flex-direction: column;
              align-items: center;
              cursor: pointer;
-             /* Ensure it doesn't get squished too much */
              flex-shrink: 0; 
         }
 
@@ -159,10 +158,9 @@
             align-items: center;
         }
 
-        /* RESET BUTTON - UPDATED POSITION */
+        /* RESET BUTTON */
         #reset-btn {
             position: absolute;
-            /* Moved down (top) and left (right) so it sits INSIDE the box */
             top: 5%; 
             right: 0%; 
             
