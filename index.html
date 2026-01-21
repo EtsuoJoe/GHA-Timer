@@ -46,10 +46,9 @@
             
             background-color: transparent; 
             
-            /* --- THE FIX IS HERE --- */
-            /* Increased right padding from 8% to 16% to force content inward.
-               (top right bottom left) */
-            padding: 0 16% 0 5%; 
+            /* RESTORED SYMMETRY:
+               Removed the huge right padding since we moved the delay button. */
+            padding: 0 5%; 
             box-sizing: border-box; 
             
             display: flex;
@@ -68,6 +67,10 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            
+            /* MOVE UP FIX: 
+               Adding padding to the bottom pushes the content upwards visually. */
+            padding-bottom: 8%; 
         }
 
         .setup-controls {
@@ -75,7 +78,7 @@
             justify-content: space-between; 
             align-items: flex-end; 
             width: 100%;
-            margin-bottom: 3%; 
+            margin-bottom: 4%; /* Space between inputs and the button row */
         }
 
         .input-group {
@@ -99,13 +102,21 @@
             text-align: center;
         }
 
+        /* NEW BOTTOM ROW (Checkbox + Button) */
+        .action-row {
+            display: flex;
+            align-items: center; /* Vertically center them */
+            justify-content: center;
+            gap: 5vw; /* Space between the checkbox and the button */
+            width: 100%;
+        }
+
         /* RETRO CHECKBOX STYLES */
         .checkbox-group {
              display: flex;
              flex-direction: column;
              align-items: center;
              cursor: pointer;
-             flex-shrink: 0; 
         }
 
         .checkbox-group label {
@@ -163,7 +174,6 @@
             position: absolute;
             top: 5%; 
             right: 0%; 
-            
             background: transparent;
             color: var(--crt-green);
             border: 1px solid var(--crt-green);
@@ -239,12 +249,13 @@
                         <label>RNDS</label>
                         <input type="number" id="rounds-in" value="8">
                     </div>
+                </div>
+
+                <div class="action-row">
                     <div class="checkbox-group">
                         <label>INITIAL<br>DELAY</label>
                         <input type="checkbox" id="delay-in" checked>
                     </div>
-                </div>
-                <div style="text-align: center;">
                     <button id="start-btn">INITIALIZE</button>
                 </div>
             </div>
