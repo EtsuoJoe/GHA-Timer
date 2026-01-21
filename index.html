@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro HIIT</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+        /* --- CSS STYLES --- */
+        :root {
+            --crt-green: #39ff14;
+            --crt-dark: #0a2a0a;
+        }
+
+        body {
+            background-color: #111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'VT323', monospace;
+            color: var(--crt-green);
+            overflow: hidden;
+            user-select: none; /* Prevents highlighting text on clicks */
+        }
+
+        #crt-screen {
+            background-color: var(--crt-dark);
+            width: 90vw;
+            max-width: 600px;
+            aspect-ratio: 4 / 3;
+            border: 4px solid #333;
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            box-shadow: inset 0 0 50px rgba(57, 255, 20, 0.2);
+        }
+
+        #crt-screen::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+        
+        @keyframes flicker {
+            0% { opacity: 0.98; }
+            50% { opacity: 1; }
+            100% { opacity: 0.99; }
+        }
+        #screen-content {
+             animation: flicker 0.15s infinite;
+             height: 100%;
+             display: flex;
+             flex-direction: column;
+             justify-content: space-between;
+        }
+
+        .setup-controls {
+            display: flex;
+            justify-content: space-around;
+            border-bottom: 2px dashed var(--crt-green);
+            padding-bottom: 10px;
+            font-size: 1.2rem;
+            flex-wrap: wrap; /* Allows wrapping on small screens */
+            gap: 10px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Checkbox Styling */
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            height: 100%;
+        }
+        input[type="checkbox"] {
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border: 2px solid var(--crt-green);
+            background: transparent;
+            cursor: pointer;
+            margin-top: 5px;
+            position: relative;
+        }
+        /* The checkmark (pixel style) */
+        input[type="checkbox"]:checked::after {
+            content: 'X';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -55%);
+            font-size: 20px;
+            color: var(--crt-green);
+            font-family: 'VT323', monospace;
+        }
+
+        input[type="number"] {
+            background: transparent;
+            border: 2px solid var(--crt-green);
+            color: var(--crt-green);
+            font-family: 'VT323', monospace;
+            font-size: 1.5rem;
+            width: 60px;
+            text-align: center;
+        }
+
+        #main-display {
+            text-align: center;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        #status-label {
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Blink animation for the PREPARE phase */
+        @keyframes fast-blink {
+            0% { opacity: 1; }
+            50% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        .blinking {
+            animation: fast-blink 0.5s infinite;
+            color: orange !important;
+        }
+
+        #time-remaining {
+            font-size: 7rem;
+            line-height: 1;
+            text-shadow: 0 0 10px var(--crt-green);
+        }
+
+        #rounds-tracker {
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        button {
+            background: var(--crt-green);
+            color: var(--crt-dark);
+            border: none;
+            font-family: 'VT323', monospace;
+            font-size: 1.5rem;
+            padding: 5px 20px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+        button:hover {
+           background: white;
+        }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div id="crt-screen">
+        <div id="screen-content">
+            <div id="setup-area">
+                <div class="setup-controls">
+                    <div class="input-group">
+                        <label>WORK(s)</label>
+                        <input type="number" id="work-in" value="30" min="1">
+                    </div>
+                    <div class="input-group">
+                        <label>REST(s)</label>
+                        <input type="number" id="rest-in" value="10" min="1">
+                    </div>
+                    <div class="input-group">
+                        <label>ROUNDS</label>
+                        <input type="number" id="rounds-in" value="8" min="1">
+                    </div>
+                    <div class="checkbox-group">
+                        <label>5s PREP</label>
+                        <input type="checkbox" id="delay-in" checked>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 30px;">
+                    <button id="start-btn">INITIALIZE</button>
+                </div>
+            </div>
+
+            <div id="workout-area" class="hidden" style="height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
+                 <div id="rounds-tracker">ROUND: <span id="curr-round">1</span> / <span id="total-rounds-disp">8</span></div>
+                 
+                 <div id="main-display">
+                    <div id="status-label">GET READY</div>
+                    <div id="time-remaining">00</div>
+                 </div>
+
+                 <div class="btn-container">
+                    <button id="reset-btn">ABORT/RESET</button>
+                 </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let workSecs, restSecs, totalRounds;
+        let currentRound = 1;
+        let isWorking = true;
+        let isDelaying = false; // New state for delay
+        let timeLeft;
+        let timerInterval;
+
+        const setupArea = document.getElementById('setup-area');
+        const workoutArea = document.getElementById('workout-area');
+        const startBtn = document.getElementById('start-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const statusLabel = document.getElementById('status-label');
+        const timeDisplay = document.getElementById('time-remaining');
+        const currRoundDisp = document.getElementById('curr-round');
+        const totalRoundsDisp = document.getElementById('total-rounds-disp');
+        const delayCheck = document.getElementById('delay-in');
+
+        function formatTime(seconds) {
+            return seconds < 10 ? `0${seconds}` : seconds;
+        }
+
+        function updateDisplay() {
+            timeDisplay.textContent = formatTime(timeLeft);
+        }
+
+        function switchMode() {
+            // Check if we are ending a Delay
+            if (isDelaying) {
+                isDelaying = false;
+                statusLabel.classList.remove('blinking'); // Stop blinking
+                startActualWorkRound(); // Go straight to Round 1 Work
+                return;
+            }
+
+            // Normal Flow (Work -> Rest -> Work)
+            if (!isWorking) {
+                currentRound++;
+                currRoundDisp.textContent = currentRound;
+            }
+
+            if (currentRound > totalRounds) {
+                clearInterval(timerInterval);
+                statusLabel.textContent = "COMPLETE!";
+                statusLabel.style.color = "var(--crt-green)";
+                timeDisplay.textContent = "Done";
+                return;
+            }
+
+            isWorking = !isWorking;
+
+            if (isWorking) {
+                setStatus("WORK!!!", "var(--crt-green)");
+                timeLeft = workSecs;
+            } else {
+                setStatus("REST...", "#ffff00");
+                timeLeft = restSecs;
+            }
+            updateDisplay();
+        }
+
+        function setStatus(text, color) {
+            statusLabel.textContent = text;
+            statusLabel.style.color = color;
+        }
+
+        function startActualWorkRound() {
+            isWorking = true;
+            setStatus("WORK!!!", "var(--crt-green)");
+            timeLeft = workSecs;
+            updateDisplay();
+        }
+
+        function tick() {
+            timeLeft--;
+            updateDisplay();
+
+            if (timeLeft <= 0) {
+                // Beep logic could go here
+                switchMode();
+            }
+        }
+
+        function startWorkout() {
+            workSecs = parseInt(document.getElementById('work-in').value);
+            restSecs = parseInt(document.getElementById('rest-in').value);
+            totalRounds = parseInt(document.getElementById('rounds-in').value);
+            let useDelay = delayCheck.checked;
+
+            if(workSecs < 1 || restSecs < 1 || totalRounds < 1) {
+                alert("Inputs must be greater than zero.");
+                return;
+            }
+
+            currentRound = 1;
+            totalRoundsDisp.textContent = totalRounds;
+            currRoundDisp.textContent = currentRound;
+            
+            setupArea.classList.add('hidden');
+            workoutArea.classList.remove('hidden');
+
+            // Handle Initial Delay vs Immediate Start
+            if (useDelay) {
+                isDelaying = true;
+                timeLeft = 5;
+                setStatus("PREPARE", "orange");
+                statusLabel.classList.add('blinking'); // Add blinking effect
+            } else {
+                isDelaying = false;
+                startActualWorkRound();
+            }
+            
+            updateDisplay();
+            timerInterval = setInterval(tick, 1000);
+        }
+
+        function resetWorkout() {
+            clearInterval(timerInterval);
+            statusLabel.classList.remove('blinking'); // Ensure blinking stops on reset
+            workoutArea.classList.add('hidden');
+            setupArea.classList.remove('hidden');
+        }
+
+        startBtn.addEventListener('click', startWorkout);
+        resetBtn.addEventListener('click', resetWorkout);
+
+    </script>
+</body>
+</html>
