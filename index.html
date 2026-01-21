@@ -38,7 +38,7 @@
         #crt-screen {
             position: absolute;
             
-            /* YOUR ALIGNMENT SETTINGS */
+            /* ALIGNMENT SETTINGS */
             top: 46%;
             left: 14%;
             width: 70%;
@@ -46,8 +46,10 @@
             
             background-color: transparent; 
             
-            /* PADDING FIX: Adds space on left/right so inputs aren't on the edge */
-            padding: 0 5%; 
+            /* UPDATED PADDING: 
+               Increased right padding to 8% to push "Initial Delay" away from the bezel.
+               (top right bottom left) */
+            padding: 0 8% 0 5%; 
             box-sizing: border-box; 
             
             display: flex;
@@ -70,8 +72,8 @@
 
         .setup-controls {
             display: flex;
-            justify-content: space-between; /* Spreads inputs evenly */
-            align-items: flex-end; /* Aligns bottoms of inputs */
+            justify-content: space-between; 
+            align-items: flex-end; 
             width: 100%;
             margin-bottom: 3%; 
         }
@@ -82,7 +84,6 @@
             align-items: center;
         }
         
-        /* Label styling */
         .input-group label {
             font-size: 3vw;
             margin-bottom: 2px;
@@ -104,22 +105,22 @@
              flex-direction: column;
              align-items: center;
              cursor: pointer;
+             /* Ensure it doesn't get squished too much */
+             flex-shrink: 0; 
         }
 
-        /* Smaller font for the longer text */
         .checkbox-group label {
-            font-size: 2vw; /* Smaller text for "INITIAL DELAY" */
+            font-size: 2vw; 
             margin-bottom: 2px;
             text-align: center;
             line-height: 1;
         }
         
-        /* Smaller Checkbox */
         input[type="checkbox"] {
             appearance: none;
             -webkit-appearance: none;
-            width: 2vw;   /* Smaller size */
-            height: 2vw;  /* Smaller size */
+            width: 2vw;   
+            height: 2vw;  
             background-color: rgba(0,0,0,0.6);
             border: 1px solid var(--crt-green);
             display: flex;
@@ -149,7 +150,7 @@
 
         /* WORKOUT SCREEN STYLES */
         #workout-area {
-            position: relative; /* Needed for absolute positioning the reset button */
+            position: relative; 
             height: 100%; 
             width: 100%;
             display: flex; 
@@ -158,16 +159,18 @@
             align-items: center;
         }
 
-        /* Reset Button - MOVED TO TOP RIGHT */
+        /* RESET BUTTON - UPDATED POSITION */
         #reset-btn {
             position: absolute;
-            top: 0;
-            right: -2%; /* Pushed slightly to the right edge */
+            /* Moved down (top) and left (right) so it sits INSIDE the box */
+            top: 5%; 
+            right: 0%; 
+            
             background: transparent;
             color: var(--crt-green);
             border: 1px solid var(--crt-green);
             font-family: 'VT323', monospace;
-            font-size: 2vw; /* Smaller font */
+            font-size: 2vw; 
             padding: 2px 5px;
             cursor: pointer;
             text-transform: uppercase;
