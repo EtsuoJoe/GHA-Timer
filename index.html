@@ -45,9 +45,6 @@
             height: 40%;
             
             background-color: transparent; 
-            
-            /* RESTORED SYMMETRY:
-               Removed the huge right padding since we moved the delay button. */
             padding: 0 5%; 
             box-sizing: border-box; 
             
@@ -68,8 +65,7 @@
             justify-content: center;
             align-items: center;
             
-            /* MOVE UP FIX: 
-               Adding padding to the bottom pushes the content upwards visually. */
+            /* This pushes everything up slightly as requested */
             padding-bottom: 8%; 
         }
 
@@ -78,7 +74,7 @@
             justify-content: space-between; 
             align-items: flex-end; 
             width: 100%;
-            margin-bottom: 4%; /* Space between inputs and the button row */
+            margin-bottom: 4%; 
         }
 
         .input-group {
@@ -102,12 +98,12 @@
             text-align: center;
         }
 
-        /* NEW BOTTOM ROW (Checkbox + Button) */
+        /* BOTTOM ROW (Checkbox + Button) */
         .action-row {
             display: flex;
-            align-items: center; /* Vertically center them */
+            align-items: center; 
             justify-content: center;
-            gap: 5vw; /* Space between the checkbox and the button */
+            gap: 5vw; 
             width: 100%;
         }
 
@@ -225,6 +221,34 @@
             100% { opacity: 1; }
         }
         .blinking { animation: fast-blink 0.5s infinite; color: orange !important; }
+
+
+        /* --- MOBILE SCREEN DETECTOR --- */
+        /* This section only activates on screens smaller than 768px (Phones) */
+        @media (max-width: 768px) {
+            
+            /* Make Inputs Bigger */
+            .input-group label { font-size: 5vw; }
+            input[type="number"] { font-size: 5vw; width: 14vw; }
+            
+            /* Make Checkbox Bigger */
+            .checkbox-group label { font-size: 3.5vw; }
+            input[type="checkbox"] { width: 5vw; height: 5vw; }
+            
+            /* Make Start Button Bigger */
+            #start-btn { font-size: 5vw; padding: 1% 4%; }
+            
+            /* Make Timer Bigger */
+            #status-label { font-size: 8vw; }
+            #time-remaining { font-size: 20vw; }
+            #rounds-tracker { font-size: 5vw; }
+
+            /* Make Reset Button Bigger & Adjust position */
+            #reset-btn { font-size: 4vw; top: 2%; right: -2%; }
+            
+            /* Relax the padding slightly so the big text fits vertically */
+            #setup-area { padding-bottom: 2%; }
+        }
 
     </style>
 </head>
