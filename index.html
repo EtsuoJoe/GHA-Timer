@@ -37,22 +37,17 @@
         /* --- THE TIMER OVERLAY --- */
         #crt-screen {
             position: absolute;
-            
-            /* ALIGNMENT SETTINGS */
             top: 46%;
             left: 14%;
             width: 70%;
             height: 40%;
-            
             background-color: transparent; 
             padding: 0 5%; 
             box-sizing: border-box; 
-            
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            
             text-shadow: 0 0 4px var(--crt-green);
         }
 
@@ -64,8 +59,6 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            
-            /* This pushes everything up slightly as requested */
             padding-bottom: 8%; 
         }
 
@@ -98,7 +91,7 @@
             text-align: center;
         }
 
-        /* BOTTOM ROW (Checkbox + Button) */
+        /* ACTION ROW (Checkbox + Button) */
         .action-row {
             display: flex;
             align-items: center; 
@@ -224,29 +217,16 @@
 
 
         /* --- MOBILE SCREEN DETECTOR --- */
-        /* This section only activates on screens smaller than 768px (Phones) */
         @media (max-width: 768px) {
-            
-            /* Make Inputs Bigger */
             .input-group label { font-size: 5vw; }
             input[type="number"] { font-size: 5vw; width: 14vw; }
-            
-            /* Make Checkbox Bigger */
             .checkbox-group label { font-size: 3.5vw; }
             input[type="checkbox"] { width: 5vw; height: 5vw; }
-            
-            /* Make Start Button Bigger */
             #start-btn { font-size: 5vw; padding: 1% 4%; }
-            
-            /* Make Timer Bigger */
             #status-label { font-size: 8vw; }
             #time-remaining { font-size: 20vw; }
             #rounds-tracker { font-size: 5vw; }
-
-            /* Make Reset Button Bigger & Adjust position */
             #reset-btn { font-size: 4vw; top: 2%; right: -2%; }
-            
-            /* Relax the padding slightly so the big text fits vertically */
             #setup-area { padding-bottom: 2%; }
         }
 
@@ -306,6 +286,49 @@
         let timeLeft;
         let timerInterval;
 
+        // --- AUDIO ENGINE ---
+        let audioCtx;
+        
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playTone(freq, type, duration) {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = type; // square, sawtooth, triangle, sine
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            
+            // Connect to gain (volume)
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            // Start and stop
+            osc.start();
+            
+            // Fade out slightly to avoid clicking sound
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+            
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function playBeep() { playTone(600, 'square', 0.1); } // 3-2-1 countdown
+        function playWorkStart() { playTone(1200, 'square', 0.4); } // High pitch for Work
+        function playRestStart() { playTone(220, 'sawtooth', 0.4); } // Low pitch for Rest
+        function playVictory() {
+            // Little arpeggio
+            let now = audioCtx.currentTime;
+            [523, 659, 784, 1046].forEach((freq, i) => {
+                setTimeout(() => playTone(freq, 'square', 0.15), i * 150);
+            });
+        }
+        // --------------------
+
         const setupArea = document.getElementById('setup-area');
         const workoutArea = document.getElementById('workout-area');
         const startBtn = document.getElementById('start-btn');
@@ -335,13 +358,16 @@
                 statusLabel.textContent = "DONE!";
                 statusLabel.style.color = "var(--crt-green)";
                 timeDisplay.textContent = "END";
+                playVictory(); // PLAY VICTORY SOUND
                 return;
             }
             isWorking = !isWorking;
             if (isWorking) {
+                playWorkStart(); // PLAY WORK SOUND
                 setStatus("WORK!", "var(--crt-green)");
                 timeLeft = workSecs;
             } else {
+                playRestStart(); // PLAY REST SOUND
                 setStatus("REST...", "#ffff00");
                 timeLeft = restSecs;
             }
@@ -355,18 +381,27 @@
 
         function startActualWorkRound() {
             isWorking = true;
+            playWorkStart(); // PLAY WORK SOUND (even after delay)
             setStatus("WORK!", "var(--crt-green)");
             timeLeft = workSecs;
             updateDisplay();
         }
 
         function tick() {
+            // Countdown Beeps on 3, 2, 1
+            if (timeLeft <= 3 && timeLeft > 0) {
+                playBeep();
+            }
+
             timeLeft--;
             updateDisplay();
             if (timeLeft <= 0) switchMode();
         }
 
         function startWorkout() {
+            // Initialize Audio Context on first user click (Browser requirement)
+            initAudio();
+
             workSecs = parseInt(document.getElementById('work-in').value);
             restSecs = parseInt(document.getElementById('rest-in').value);
             totalRounds = parseInt(document.getElementById('rounds-in').value);
@@ -385,6 +420,8 @@
                 timeLeft = 5;
                 setStatus("PREP", "orange");
                 statusLabel.classList.add('blinking');
+                // Optional: Play a starting beep
+                playBeep();
             } else {
                 isDelaying = false;
                 startActualWorkRound();
