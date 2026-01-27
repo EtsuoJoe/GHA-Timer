@@ -169,8 +169,8 @@
         /* --- SFX BUTTON --- */
         #sfx-btn {
             position: absolute;
-            /* MOVED UP SIGNIFICANTLY to 12% */
-            bottom: 9%; 
+            /* MOVED TO 10% - Safe zone for bezel */
+            bottom: 10%; 
             left: 50%;
             transform: translateX(-50%);
             
@@ -362,9 +362,9 @@
         let timerInterval;
         let isMuted = false;
 
-        // --- RELIABLE AUDIO ENGINE ---
-        // 1. Create global audio objects immediately
-        const audioLib = {
+        // --- GLOBAL AUDIO ENGINE ---
+        // Creating these once ensures they stay in memory
+        const sfx = {
             beep: new Audio('beep.mp3'),
             work: new Audio('work.mp3'),
             rest: new Audio('rest.mp3'),
@@ -372,33 +372,33 @@
             victory: new Audio('victory.mp3')
         };
 
-        // 2. The Play Function
-        function playSfx(key) {
+        // Helper to play sounds
+        function playSfx(name) {
             if (isMuted) return;
-            
-            const sound = audioLib[key];
+            const sound = sfx[name];
             if (sound) {
-                // Rewind and Play
-                sound.currentTime = 0;
-                sound.play().catch(err => console.log("Audio Error:", err));
+                sound.currentTime = 0; // Rewind to start
+                sound.play().catch(e => console.log("Sound error:", e));
             }
         }
 
-        // 3. The "Unlock" Function
-        // Called on User Click to force browser to allow audio
+        // --- THE "SILENT UNLOCK" FUNCTION ---
+        // This is critical. It plays every sound volume 0 on user click.
+        // This authorizes the browser to play them later programmatically.
         function unlockAudio() {
-            if (isMuted) return;
-            Object.values(audioLib).forEach(sound => {
-                // Play silent for a millisecond
-                sound.volume = 0;
+            Object.values(sfx).forEach(sound => {
+                const originalVol = sound.volume;
+                sound.volume = 0; // Mute
                 sound.play().then(() => {
                     sound.pause();
                     sound.currentTime = 0;
                     sound.volume = 1; // Restore volume
-                }).catch(e => {});
+                }).catch(e => {
+                    console.log("Unlock failed for one sound:", e);
+                });
             });
         }
-        // -----------------------------
+        // ------------------------------------
 
         const setupArea = document.getElementById('setup-area');
         const workoutArea = document.getElementById('workout-area');
@@ -487,8 +487,6 @@
             updateDisplay();
 
             // 3. Beep Logic (At 3, 2, 1)
-            // Note: Since we use global objects now, "3" will get cut off by "2"
-            // This is actually GOOD for mobile performance and syncing.
             if (timeLeft === 3 || timeLeft === 2 || timeLeft === 1) {
                 playSfx('beep');
             }
@@ -500,7 +498,7 @@
         }
 
         function startWorkout() {
-            // UNLOCK AUDIO NOW
+            // UNLOCK AUDIO ON FIRST CLICK
             unlockAudio();
 
             workSecs = parseInt(document.getElementById('work-in').value);
@@ -553,4 +551,3 @@
     </script>
 </body>
 </html>
-
