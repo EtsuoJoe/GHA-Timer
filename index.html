@@ -169,8 +169,7 @@
         /* --- SFX BUTTON (On the TV Casing) --- */
         #sfx-btn {
             position: absolute;
-            /* MOVED UP from 4% to 8% */
-            bottom: 8%; 
+            bottom: 9%; 
             left: 50%;
             transform: translateX(-50%);
             
@@ -261,10 +260,9 @@
 
 
         /* --- DESKTOP / ULTRAWIDE FIX --- */
-        /* I have significantly increased these pixel values to fill out the 800px image */
         @media (min-width: 800px) {
-            .input-group label { font-size: 32px; } /* Bigger Labels */
-            input[type="number"] { font-size: 40px; width: 110px; } /* Much Bigger Inputs */
+            .input-group label { font-size: 32px; } 
+            input[type="number"] { font-size: 40px; width: 110px; } 
             
             .checkbox-group label { font-size: 20px; } 
             input[type="checkbox"] { width: 25px; height: 25px; } 
@@ -274,11 +272,11 @@
             #tabata-btn { font-size: 20px; margin-bottom: 20px;}
             
             #status-label { font-size: 50px; } 
-            #time-remaining { font-size: 110px; } /* Huge Timer */
+            #time-remaining { font-size: 110px; } 
             #rounds-tracker { font-size: 30px; } 
             #reset-btn { font-size: 20px; } 
             
-            #sfx-btn { font-size: 14px; bottom: 50px; } /* Fixed pixel position for desktop */
+            #sfx-btn { font-size: 14px; bottom: 50px; } 
             #sfx-led { width: 10px; height: 10px; }
         }
 
@@ -364,16 +362,13 @@
         let isMuted = false;
 
         // --- AUDIO ENGINE ---
-        
         function playSoundFile(filename) {
             if (isMuted) return; // Don't play if muted
-            
             const audio = new Audio(filename);
             audio.play().catch(e => {
                 console.log("Audio play failed: " + filename);
             });
         }
-
         // --------------------
 
         const setupArea = document.getElementById('setup-area');
@@ -413,16 +408,14 @@
             }
             isWorking = !isWorking;
             if (isWorking) {
-                
-                // FINAL ROUND LOGIC
+                // FINAL ROUND CHECK
                 if(currentRound === totalRounds) {
-                     playSoundFile('final.mp3'); // Play special sound
-                     setStatus("FINAL!", "#ff3333"); // Optional: Red text for final
+                     playSoundFile('final.mp3'); 
+                     setStatus("FINAL!", "#ff3333"); 
                 } else {
                      playSoundFile('work.mp3');
                      setStatus("WORK!", "var(--crt-green)");
                 }
-                
                 timeLeft = workSecs;
             } else {
                 playSoundFile('rest.mp3');
@@ -439,8 +432,7 @@
 
         function startActualWorkRound() {
             isWorking = true;
-            
-            // Check for Final Round immediately (in case user sets 1 round)
+            // Check for Final Round immediately (if only 1 round set)
             if(currentRound === totalRounds) {
                  playSoundFile('final.mp3');
                  setStatus("FINAL!", "#ff3333");
@@ -448,13 +440,13 @@
                  playSoundFile('work.mp3');
                  setStatus("WORK!", "var(--crt-green)");
             }
-            
             timeLeft = workSecs;
             updateDisplay();
         }
 
         function tick() {
-            if (timeLeft <= 3 && timeLeft > 0) {
+            // FIX: Beep on 3, 2, 1 (Previously it was <=3 && >0)
+            if (timeLeft <= 4 && timeLeft > 1) {
                 playSoundFile('beep.mp3');
             }
             timeLeft--;
@@ -481,7 +473,8 @@
                 timeLeft = 5;
                 setStatus("PREP", "orange");
                 statusLabel.classList.add('blinking');
-                playSoundFile('beep.mp3');
+                // Optional: Beep on start of prep? 
+                // Currently only counting down 3,2,1 of the prep.
             } else {
                 isDelaying = false;
                 startActualWorkRound();
