@@ -169,8 +169,8 @@
         /* --- SFX BUTTON --- */
         #sfx-btn {
             position: absolute;
-            /* MOVED UP A TINY BIT MORE TO CLEAR BEZEL */
-            bottom: 11%; 
+            /* MOVED DOWN TO 5% TO GET OFF THE SCREEN */
+            bottom: 10%; 
             left: 50%;
             transform: translateX(-50%);
             
@@ -277,7 +277,7 @@
             #rounds-tracker { font-size: 30px; } 
             #reset-btn { font-size: 20px; } 
             
-            #sfx-btn { font-size: 14px; bottom: 85px; } 
+            #sfx-btn { font-size: 14px; bottom: 40px; } 
             #sfx-led { width: 10px; height: 10px; }
         }
 
@@ -362,24 +362,34 @@
         let timerInterval;
         let isMuted = false;
 
-        // --- IMPROVED AUDIO ENGINE (Preloading) ---
-        // We create the audio objects ONCE so they are always ready
-        const sfx = {
-            beep: new Audio('beep.mp3'),
-            work: new Audio('work.mp3'),
-            rest: new Audio('rest.mp3'),
-            final: new Audio('final.mp3'),
-            victory: new Audio('victory.mp3')
+        // --- NEW & IMPROVED AUDIO ENGINE ---
+        // We create audio objects, but when we play, we clone them.
+        // This allows overlap (e.g. beep 2 playing while beep 3 fades out)
+        const sfxSources = {
+            beep: 'beep.mp3',
+            work: 'work.mp3',
+            rest: 'rest.mp3',
+            final: 'final.mp3',
+            victory: 'victory.mp3'
         };
 
-        // Helper to play sounds instantly
+        // Pre-load audio objects to memory
+        const audioCache = {};
+        for (const [key, src] of Object.entries(sfxSources)) {
+            audioCache[key] = new Audio(src);
+            audioCache[key].volume = 1.0;
+        }
+
         function playSfx(name) {
             if (isMuted) return;
             
-            const sound = sfx[name];
-            if (sound) {
-                sound.currentTime = 0; // Rewind to start immediately
-                sound.play().catch(e => console.log("Sound failed:", e));
+            // The Secret Fix: cloneNode(true)
+            // This creates a fresh copy of the audio element every time.
+            // It ensures the sound plays INSTANTLY even if it was already playing.
+            if (audioCache[name]) {
+                const sound = audioCache[name].cloneNode(true);
+                sound.volume = 1.0;
+                sound.play().catch(e => console.error("Audio error:", e));
             }
         }
         // ----------------------------------------
@@ -411,33 +421,36 @@
 
             // Case 2: We were resting, time to Work
             if (!isWorking) {
-                currentRound++; // Increment round number
+                currentRound++; 
                 currRoundDisp.textContent = currentRound;
                 isWorking = true;
-                startActualWorkRound(); // Start the work timer
+                startActualWorkRound(); 
                 return;
             }
 
             // Case 3: We were working
             if (isWorking) {
-                // Was this the LAST round?
+                // If this was the LAST round, end the workout (Don't go to rest)
                 if (currentRound >= totalRounds) {
-                    // YES -> VICTORY (Skip Rest)
-                    clearInterval(timerInterval);
-                    statusLabel.textContent = "DONE!";
-                    statusLabel.style.color = "var(--crt-green)";
-                    timeDisplay.textContent = "END";
-                    playSfx('victory'); 
+                    endGame();
                     return;
                 }
 
-                // NO -> Go to Rest
+                // Otherwise, go to rest
                 isWorking = false;
                 timeLeft = restSecs;
                 setStatus("REST...", "#ffff00");
                 playSfx('rest');
                 updateDisplay();
             }
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            statusLabel.textContent = "DONE!";
+            statusLabel.style.color = "var(--crt-green)";
+            timeDisplay.textContent = "END";
+            playSfx('victory');
         }
 
         function setStatus(text, color) {
@@ -448,7 +461,7 @@
         function startActualWorkRound() {
             isWorking = true;
             
-            // Check if it's the final round (even if only 1 round total)
+            // Check if Final Round
             if(currentRound === totalRounds) {
                  playSfx('final');
                  setStatus("FINAL!", "#ff3333");
@@ -462,25 +475,28 @@
         }
 
         function tick() {
-            // 1. Decrement Time FIRST
+            // 1. Decrement Time
             timeLeft--;
             
-            // 2. Update the Screen
+            // 2. Update Screen
             updateDisplay();
 
-            // 3. Check for Beeps (At 3, 2, 1)
-            // This logic ensures it beeps exactly when the number changes
+            // 3. Play Beep Logic (At 3, 2, 1)
+            // Using cloneNode ensures even if "3" is echoing, "2" will start fresh.
             if (timeLeft === 3 || timeLeft === 2 || timeLeft === 1) {
                 playSfx('beep');
             }
 
-            // 4. Check for End of Round
+            // 4. Check for End of Timer
             if (timeLeft <= 0) {
                 switchMode();
             }
         }
 
         function startWorkout() {
+            // Unlock audio context on first click (Mobile browser requirement)
+            if(audioCache['beep']) audioCache['beep'].play().then(() => audioCache['beep'].pause()).catch(()=>{});
+
             workSecs = parseInt(document.getElementById('work-in').value);
             restSecs = parseInt(document.getElementById('rest-in').value);
             totalRounds = parseInt(document.getElementById('rounds-in').value);
@@ -499,7 +515,6 @@
                 timeLeft = 5;
                 setStatus("PREP", "orange");
                 statusLabel.classList.add('blinking');
-                // Removed the start beep here so it just counts down 3,2,1
             } else {
                 isDelaying = false;
                 startActualWorkRound();
