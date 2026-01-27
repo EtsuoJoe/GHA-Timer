@@ -169,17 +169,14 @@
         /* --- SFX BUTTON --- */
         #sfx-btn {
             position: absolute;
-            /* MOVED DOWN TO 5% TO GET OFF THE SCREEN */
-            bottom: 10%; 
+            bottom: 5%; 
             left: 50%;
             transform: translateX(-50%);
-            
             background: #222; 
             color: #888;
             border: 2px solid #444;
             border-bottom: 4px solid #111; 
             border-radius: 4px;
-            
             font-family: sans-serif;
             font-weight: bold;
             font-size: 1.5vw;
@@ -190,7 +187,6 @@
             gap: 5px;
             z-index: 20;
         }
-        
         #sfx-btn:active {
             border-bottom: 2px solid #111;
             transform: translateX(-50%) translateY(2px);
@@ -203,7 +199,6 @@
             background-color: #39ff14; 
             box-shadow: 0 0 5px #39ff14;
         }
-        
         .sfx-muted #sfx-led {
             background-color: #ff0000; 
             box-shadow: 0 0 5px #ff0000;
@@ -264,19 +259,14 @@
         @media (min-width: 800px) {
             .input-group label { font-size: 32px; } 
             input[type="number"] { font-size: 40px; width: 110px; } 
-            
             .checkbox-group label { font-size: 20px; } 
             input[type="checkbox"] { width: 25px; height: 25px; } 
-            
             #start-btn { font-size: 36px; padding: 5px 20px; } 
-            
             #tabata-btn { font-size: 20px; margin-bottom: 20px;}
-            
             #status-label { font-size: 50px; } 
             #time-remaining { font-size: 110px; } 
             #rounds-tracker { font-size: 30px; } 
             #reset-btn { font-size: 20px; } 
-            
             #sfx-btn { font-size: 14px; bottom: 40px; } 
             #sfx-led { width: 10px; height: 10px; }
         }
@@ -293,7 +283,6 @@
             #rounds-tracker { font-size: 5vw; }
             #reset-btn { font-size: 4vw; top: 2%; right: -2%; }
             #setup-area { padding-bottom: 2%; }
-            
             #tabata-btn { font-size: 4vw; }
             #sfx-btn { font-size: 3vw; bottom: 8%; width: max-content;}
             #sfx-led { width: 3vw; height: 3vw; }
@@ -341,9 +330,7 @@
 
             <div id="workout-area" class="hidden">
                  <button id="reset-btn">RESET</button>
-
                  <div id="rounds-tracker">RND: <span id="curr-round">1</span>/<span id="total-rounds-disp">8</span></div>
-                 
                  <div id="main-display">
                     <div id="status-label">READY</div>
                     <div id="time-remaining">00</div>
@@ -362,38 +349,6 @@
         let timerInterval;
         let isMuted = false;
 
-        // --- NEW & IMPROVED AUDIO ENGINE ---
-        // We create audio objects, but when we play, we clone them.
-        // This allows overlap (e.g. beep 2 playing while beep 3 fades out)
-        const sfxSources = {
-            beep: 'beep.mp3',
-            work: 'work.mp3',
-            rest: 'rest.mp3',
-            final: 'final.mp3',
-            victory: 'victory.mp3'
-        };
-
-        // Pre-load audio objects to memory
-        const audioCache = {};
-        for (const [key, src] of Object.entries(sfxSources)) {
-            audioCache[key] = new Audio(src);
-            audioCache[key].volume = 1.0;
-        }
-
-        function playSfx(name) {
-            if (isMuted) return;
-            
-            // The Secret Fix: cloneNode(true)
-            // This creates a fresh copy of the audio element every time.
-            // It ensures the sound plays INSTANTLY even if it was already playing.
-            if (audioCache[name]) {
-                const sound = audioCache[name].cloneNode(true);
-                sound.volume = 1.0;
-                sound.play().catch(e => console.error("Audio error:", e));
-            }
-        }
-        // ----------------------------------------
-
         const setupArea = document.getElementById('setup-area');
         const workoutArea = document.getElementById('workout-area');
         const startBtn = document.getElementById('start-btn');
@@ -403,9 +358,35 @@
         const currRoundDisp = document.getElementById('curr-round');
         const totalRoundsDisp = document.getElementById('total-rounds-disp');
         const delayCheck = document.getElementById('delay-in');
-        
         const tabataBtn = document.getElementById('tabata-btn');
         const sfxBtn = document.getElementById('sfx-btn');
+
+        // --- ROBUST AUDIO ENGINE ---
+        const fileNames = ['beep.mp3', 'work.mp3', 'rest.mp3', 'final.mp3', 'victory.mp3'];
+        
+        // This function creates a NEW audio element every time called.
+        // It bypasses the "cloneNode" issues on some mobile browsers.
+        function playSfx(name) {
+            if (isMuted) return;
+            const audio = new Audio(name + '.mp3');
+            audio.volume = 1.0;
+            audio.play().catch(e => console.log("Play failed: ", e));
+        }
+
+        // "Warm Up" Function: touches all files on user interaction
+        function warmUpAudio() {
+            if (isMuted) return;
+            fileNames.forEach(file => {
+                const s = new Audio(file);
+                s.volume = 0; // Silent
+                s.play().then(() => {
+                    // Immediately pause to stop playing, but now it's "authorized"
+                    s.pause();
+                    s.currentTime = 0;
+                }).catch(e => { /* Ignore errors during warmup */ });
+            });
+        }
+        // ----------------------------------------
 
         function formatTime(seconds) { return seconds < 10 ? `0${seconds}` : seconds; }
         function updateDisplay() { timeDisplay.textContent = formatTime(timeLeft); }
@@ -430,13 +411,13 @@
 
             // Case 3: We were working
             if (isWorking) {
-                // If this was the LAST round, end the workout (Don't go to rest)
+                // If LAST round, end immediately
                 if (currentRound >= totalRounds) {
                     endGame();
                     return;
                 }
 
-                // Otherwise, go to rest
+                // Go to rest
                 isWorking = false;
                 timeLeft = restSecs;
                 setStatus("REST...", "#ffff00");
@@ -460,8 +441,7 @@
 
         function startActualWorkRound() {
             isWorking = true;
-            
-            // Check if Final Round
+            // Check Final Round
             if(currentRound === totalRounds) {
                  playSfx('final');
                  setStatus("FINAL!", "#ff3333");
@@ -469,33 +449,31 @@
                  playSfx('work');
                  setStatus("WORK!", "var(--crt-green)");
             }
-            
             timeLeft = workSecs;
             updateDisplay();
         }
 
         function tick() {
-            // 1. Decrement Time
+            // 1. Decrement
             timeLeft--;
             
-            // 2. Update Screen
+            // 2. Update Display
             updateDisplay();
 
-            // 3. Play Beep Logic (At 3, 2, 1)
-            // Using cloneNode ensures even if "3" is echoing, "2" will start fresh.
+            // 3. Beep Logic (3-2-1)
             if (timeLeft === 3 || timeLeft === 2 || timeLeft === 1) {
                 playSfx('beep');
             }
 
-            // 4. Check for End of Timer
+            // 4. Check End
             if (timeLeft <= 0) {
                 switchMode();
             }
         }
 
         function startWorkout() {
-            // Unlock audio context on first click (Mobile browser requirement)
-            if(audioCache['beep']) audioCache['beep'].play().then(() => audioCache['beep'].pause()).catch(()=>{});
+            // CRITICAL: Warm up audio on first click
+            warmUpAudio();
 
             workSecs = parseInt(document.getElementById('work-in').value);
             restSecs = parseInt(document.getElementById('rest-in').value);
