@@ -26,7 +26,7 @@
         #game-container {
             position: relative;
             width: 100%;
-            max-width: 800px; /* The image stops growing here */
+            max-width: 800px; 
         }
 
         #bg-image {
@@ -166,10 +166,11 @@
         }
         #start-btn:hover { background: white; }
 
-        /* --- SFX BUTTON (On the TV Casing) --- */
+        /* --- SFX BUTTON --- */
         #sfx-btn {
             position: absolute;
-            bottom: 9%; 
+            /* MOVED UP A TINY BIT MORE TO CLEAR BEZEL */
+            bottom: 11%; 
             left: 50%;
             transform: translateX(-50%);
             
@@ -276,7 +277,7 @@
             #rounds-tracker { font-size: 30px; } 
             #reset-btn { font-size: 20px; } 
             
-            #sfx-btn { font-size: 14px; bottom: 50px; } 
+            #sfx-btn { font-size: 14px; bottom: 85px; } 
             #sfx-led { width: 10px; height: 10px; }
         }
 
@@ -361,15 +362,27 @@
         let timerInterval;
         let isMuted = false;
 
-        // --- AUDIO ENGINE ---
-        function playSoundFile(filename) {
-            if (isMuted) return; // Don't play if muted
-            const audio = new Audio(filename);
-            audio.play().catch(e => {
-                console.log("Audio play failed: " + filename);
-            });
+        // --- IMPROVED AUDIO ENGINE (Preloading) ---
+        // We create the audio objects ONCE so they are always ready
+        const sfx = {
+            beep: new Audio('beep.mp3'),
+            work: new Audio('work.mp3'),
+            rest: new Audio('rest.mp3'),
+            final: new Audio('final.mp3'),
+            victory: new Audio('victory.mp3')
+        };
+
+        // Helper to play sounds instantly
+        function playSfx(name) {
+            if (isMuted) return;
+            
+            const sound = sfx[name];
+            if (sound) {
+                sound.currentTime = 0; // Rewind to start immediately
+                sound.play().catch(e => console.log("Sound failed:", e));
+            }
         }
-        // --------------------
+        // ----------------------------------------
 
         const setupArea = document.getElementById('setup-area');
         const workoutArea = document.getElementById('workout-area');
@@ -388,41 +401,43 @@
         function updateDisplay() { timeDisplay.textContent = formatTime(timeLeft); }
 
         function switchMode() {
+            // Case 1: End of Initial Delay
             if (isDelaying) {
                 isDelaying = false;
                 statusLabel.classList.remove('blinking');
                 startActualWorkRound();
                 return;
             }
+
+            // Case 2: We were resting, time to Work
             if (!isWorking) {
-                currentRound++;
+                currentRound++; // Increment round number
                 currRoundDisp.textContent = currentRound;
-            }
-            if (currentRound > totalRounds) {
-                clearInterval(timerInterval);
-                statusLabel.textContent = "DONE!";
-                statusLabel.style.color = "var(--crt-green)";
-                timeDisplay.textContent = "END";
-                playSoundFile('victory.mp3'); 
+                isWorking = true;
+                startActualWorkRound(); // Start the work timer
                 return;
             }
-            isWorking = !isWorking;
+
+            // Case 3: We were working
             if (isWorking) {
-                // FINAL ROUND CHECK
-                if(currentRound === totalRounds) {
-                     playSoundFile('final.mp3'); 
-                     setStatus("FINAL!", "#ff3333"); 
-                } else {
-                     playSoundFile('work.mp3');
-                     setStatus("WORK!", "var(--crt-green)");
+                // Was this the LAST round?
+                if (currentRound >= totalRounds) {
+                    // YES -> VICTORY (Skip Rest)
+                    clearInterval(timerInterval);
+                    statusLabel.textContent = "DONE!";
+                    statusLabel.style.color = "var(--crt-green)";
+                    timeDisplay.textContent = "END";
+                    playSfx('victory'); 
+                    return;
                 }
-                timeLeft = workSecs;
-            } else {
-                playSoundFile('rest.mp3');
-                setStatus("REST...", "#ffff00");
+
+                // NO -> Go to Rest
+                isWorking = false;
                 timeLeft = restSecs;
+                setStatus("REST...", "#ffff00");
+                playSfx('rest');
+                updateDisplay();
             }
-            updateDisplay();
         }
 
         function setStatus(text, color) {
@@ -432,26 +447,37 @@
 
         function startActualWorkRound() {
             isWorking = true;
-            // Check for Final Round immediately (if only 1 round set)
+            
+            // Check if it's the final round (even if only 1 round total)
             if(currentRound === totalRounds) {
-                 playSoundFile('final.mp3');
+                 playSfx('final');
                  setStatus("FINAL!", "#ff3333");
             } else {
-                 playSoundFile('work.mp3');
+                 playSfx('work');
                  setStatus("WORK!", "var(--crt-green)");
             }
+            
             timeLeft = workSecs;
             updateDisplay();
         }
 
         function tick() {
-            // FIX: Beep on 3, 2, 1 (Previously it was <=3 && >0)
-            if (timeLeft <= 4 && timeLeft > 1) {
-                playSoundFile('beep.mp3');
-            }
+            // 1. Decrement Time FIRST
             timeLeft--;
+            
+            // 2. Update the Screen
             updateDisplay();
-            if (timeLeft <= 0) switchMode();
+
+            // 3. Check for Beeps (At 3, 2, 1)
+            // This logic ensures it beeps exactly when the number changes
+            if (timeLeft === 3 || timeLeft === 2 || timeLeft === 1) {
+                playSfx('beep');
+            }
+
+            // 4. Check for End of Round
+            if (timeLeft <= 0) {
+                switchMode();
+            }
         }
 
         function startWorkout() {
@@ -473,8 +499,7 @@
                 timeLeft = 5;
                 setStatus("PREP", "orange");
                 statusLabel.classList.add('blinking');
-                // Optional: Beep on start of prep? 
-                // Currently only counting down 3,2,1 of the prep.
+                // Removed the start beep here so it just counts down 3,2,1
             } else {
                 isDelaying = false;
                 startActualWorkRound();
