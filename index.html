@@ -9,6 +9,7 @@
         /* --- CSS STYLES --- */
         :root {
             --crt-green: #39ff14; 
+            --crt-amber: #ffb000;
         }
 
         body {
@@ -25,7 +26,7 @@
         #game-container {
             position: relative;
             width: 100%;
-            max-width: 800px; 
+            max-width: 800px; /* The image stops growing here */
         }
 
         #bg-image {
@@ -67,7 +68,7 @@
             justify-content: space-between; 
             align-items: flex-end; 
             width: 100%;
-            margin-bottom: 4%; 
+            margin-bottom: 2%; 
         }
 
         .input-group {
@@ -91,7 +92,26 @@
             text-align: center;
         }
 
-        /* ACTION ROW (Checkbox + Button) */
+        /* TABATA PRESET BUTTON */
+        #tabata-btn {
+            background: transparent;
+            color: var(--crt-amber);
+            border: 1px solid var(--crt-amber);
+            font-family: 'VT323', monospace;
+            font-size: 2vw; 
+            padding: 2px 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            margin-bottom: 4%;
+            text-shadow: 0 0 2px var(--crt-amber);
+            box-shadow: 0 0 2px var(--crt-amber);
+        }
+        #tabata-btn:hover {
+            background: var(--crt-amber);
+            color: black;
+        }
+
+        /* ACTION ROW */
         .action-row {
             display: flex;
             align-items: center; 
@@ -100,7 +120,6 @@
             width: 100%;
         }
 
-        /* RETRO CHECKBOX STYLES */
         .checkbox-group {
              display: flex;
              flex-direction: column;
@@ -147,6 +166,50 @@
         }
         #start-btn:hover { background: white; }
 
+        /* --- SFX BUTTON (On the TV Casing) --- */
+        #sfx-btn {
+            position: absolute;
+            bottom: 4%; /* Placed on the bottom bezel */
+            left: 50%;
+            transform: translateX(-50%);
+            
+            background: #222; /* Dark plastic look */
+            color: #888;
+            border: 2px solid #444;
+            border-bottom: 4px solid #111; /* 3D effect */
+            border-radius: 4px;
+            
+            font-family: sans-serif;
+            font-weight: bold;
+            font-size: 1.5vw;
+            padding: 0.5% 2%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            z-index: 20;
+        }
+        
+        #sfx-btn:active {
+            border-bottom: 2px solid #111;
+            transform: translateX(-50%) translateY(2px);
+        }
+
+        /* The little LED light on the button */
+        #sfx-led {
+            width: 1vw;
+            height: 1vw;
+            border-radius: 50%;
+            background-color: #39ff14; /* Default ON Green */
+            box-shadow: 0 0 5px #39ff14;
+        }
+        
+        /* Muted State Class */
+        .sfx-muted #sfx-led {
+            background-color: #ff0000; /* Red for OFF */
+            box-shadow: 0 0 5px #ff0000;
+        }
+
         /* WORKOUT SCREEN STYLES */
         #workout-area {
             position: relative; 
@@ -158,7 +221,6 @@
             align-items: center;
         }
 
-        /* RESET BUTTON */
         #reset-btn {
             position: absolute;
             top: 5%; 
@@ -173,16 +235,9 @@
             text-transform: uppercase;
             z-index: 10;
         }
-        #reset-btn:hover {
-            background: var(--crt-green);
-            color: black;
-        }
+        #reset-btn:hover { background: var(--crt-green); color: black; }
 
-        #rounds-tracker {
-            font-size: 3vw;
-            text-align: center;
-            margin-top: 4%; 
-        }
+        #rounds-tracker { font-size: 3vw; text-align: center; margin-top: 4%; }
 
         #main-display {
             flex-grow: 1; 
@@ -193,18 +248,8 @@
             line-height: 1; 
         }
 
-        #status-label {
-            font-size: 5vw; 
-            text-align: center;
-            text-transform: uppercase;
-        }
-
-        #time-remaining {
-            font-size: 11vw; 
-            line-height: 0.9;
-            text-align: center;
-            margin-bottom: 2%;
-        }
+        #status-label { font-size: 5vw; text-align: center; text-transform: uppercase; }
+        #time-remaining { font-size: 11vw; line-height: 0.9; text-align: center; margin-bottom: 2%; }
         
         .hidden { display: none !important; }
 
@@ -215,6 +260,29 @@
         }
         .blinking { animation: fast-blink 0.5s infinite; color: orange !important; }
 
+
+        /* --- FIX FOR ULTRAWIDE MONITORS --- */
+        /* Since the image caps at 800px width, we must CAP the font sizes too. 
+           Otherwise 'vw' keeps growing and the text explodes out of the TV.
+           The math: 1vw of 800px = 8px. So 3vw = 24px. */
+        
+        @media (min-width: 800px) {
+            .input-group label { font-size: 24px; } /* 3vw -> 24px */
+            input[type="number"] { font-size: 24px; width: 72px; } /* 3vw -> 24px */
+            .checkbox-group label { font-size: 16px; } /* 2vw -> 16px */
+            input[type="checkbox"] { width: 16px; height: 16px; } /* 2vw -> 16px */
+            #start-btn { font-size: 28px; } /* 3.5vw -> 28px */
+            
+            #tabata-btn { font-size: 16px; }
+            
+            #status-label { font-size: 40px; } /* 5vw -> 40px */
+            #time-remaining { font-size: 88px; } /* 11vw -> 88px */
+            #rounds-tracker { font-size: 24px; } /* 3vw -> 24px */
+            #reset-btn { font-size: 16px; } /* 2vw -> 16px */
+            
+            #sfx-btn { font-size: 12px; }
+            #sfx-led { width: 8px; height: 8px; }
+        }
 
         /* --- MOBILE SCREEN DETECTOR --- */
         @media (max-width: 768px) {
@@ -228,6 +296,10 @@
             #rounds-tracker { font-size: 5vw; }
             #reset-btn { font-size: 4vw; top: 2%; right: -2%; }
             #setup-area { padding-bottom: 2%; }
+            
+            #tabata-btn { font-size: 4vw; }
+            #sfx-btn { font-size: 3vw; bottom: 6%; width: max-content;}
+            #sfx-led { width: 3vw; height: 3vw; }
         }
 
     </style>
@@ -236,6 +308,10 @@
 
     <div id="game-container">
         <img src="bg.png" id="bg-image" alt="Retro TV Background">
+
+        <div id="sfx-btn">
+            <div id="sfx-led"></div> SFX
+        </div>
 
         <div id="crt-screen">
             
@@ -254,6 +330,8 @@
                         <input type="number" id="rounds-in" value="8">
                     </div>
                 </div>
+
+                <button id="tabata-btn">LOAD TABATA PRESET</button>
 
                 <div class="action-row">
                     <div class="checkbox-group">
@@ -285,48 +363,19 @@
         let isDelaying = false;
         let timeLeft;
         let timerInterval;
+        let isMuted = false;
 
         // --- AUDIO ENGINE ---
-        let audioCtx;
         
-        function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-        }
-
-        function playTone(freq, type, duration) {
-            if (!audioCtx) return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
+        function playSoundFile(filename) {
+            if (isMuted) return; // Don't play if muted
             
-            osc.type = type; // square, sawtooth, triangle, sine
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            
-            // Connect to gain (volume)
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            
-            // Start and stop
-            osc.start();
-            
-            // Fade out slightly to avoid clicking sound
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
-            
-            osc.stop(audioCtx.currentTime + duration);
-        }
-
-        function playBeep() { playTone(600, 'square', 0.1); } // 3-2-1 countdown
-        function playWorkStart() { playTone(1200, 'square', 0.4); } // High pitch for Work
-        function playRestStart() { playTone(220, 'sawtooth', 0.4); } // Low pitch for Rest
-        function playVictory() {
-            // Little arpeggio
-            let now = audioCtx.currentTime;
-            [523, 659, 784, 1046].forEach((freq, i) => {
-                setTimeout(() => playTone(freq, 'square', 0.15), i * 150);
+            const audio = new Audio(filename);
+            audio.play().catch(e => {
+                console.log("Audio play failed: " + filename);
             });
         }
+
         // --------------------
 
         const setupArea = document.getElementById('setup-area');
@@ -338,6 +387,9 @@
         const currRoundDisp = document.getElementById('curr-round');
         const totalRoundsDisp = document.getElementById('total-rounds-disp');
         const delayCheck = document.getElementById('delay-in');
+        
+        const tabataBtn = document.getElementById('tabata-btn');
+        const sfxBtn = document.getElementById('sfx-btn');
 
         function formatTime(seconds) { return seconds < 10 ? `0${seconds}` : seconds; }
         function updateDisplay() { timeDisplay.textContent = formatTime(timeLeft); }
@@ -358,16 +410,16 @@
                 statusLabel.textContent = "DONE!";
                 statusLabel.style.color = "var(--crt-green)";
                 timeDisplay.textContent = "END";
-                playVictory(); // PLAY VICTORY SOUND
+                playSoundFile('victory.mp3'); 
                 return;
             }
             isWorking = !isWorking;
             if (isWorking) {
-                playWorkStart(); // PLAY WORK SOUND
+                playSoundFile('work.mp3');
                 setStatus("WORK!", "var(--crt-green)");
                 timeLeft = workSecs;
             } else {
-                playRestStart(); // PLAY REST SOUND
+                playSoundFile('rest.mp3');
                 setStatus("REST...", "#ffff00");
                 timeLeft = restSecs;
             }
@@ -381,27 +433,22 @@
 
         function startActualWorkRound() {
             isWorking = true;
-            playWorkStart(); // PLAY WORK SOUND (even after delay)
+            playSoundFile('work.mp3');
             setStatus("WORK!", "var(--crt-green)");
             timeLeft = workSecs;
             updateDisplay();
         }
 
         function tick() {
-            // Countdown Beeps on 3, 2, 1
             if (timeLeft <= 3 && timeLeft > 0) {
-                playBeep();
+                playSoundFile('beep.mp3');
             }
-
             timeLeft--;
             updateDisplay();
             if (timeLeft <= 0) switchMode();
         }
 
         function startWorkout() {
-            // Initialize Audio Context on first user click (Browser requirement)
-            initAudio();
-
             workSecs = parseInt(document.getElementById('work-in').value);
             restSecs = parseInt(document.getElementById('rest-in').value);
             totalRounds = parseInt(document.getElementById('rounds-in').value);
@@ -420,13 +467,11 @@
                 timeLeft = 5;
                 setStatus("PREP", "orange");
                 statusLabel.classList.add('blinking');
-                // Optional: Play a starting beep
-                playBeep();
+                playSoundFile('beep.mp3');
             } else {
                 isDelaying = false;
                 startActualWorkRound();
             }
-            
             updateDisplay();
             timerInterval = setInterval(tick, 1000);
         }
@@ -437,6 +482,21 @@
             workoutArea.classList.add('hidden');
             setupArea.classList.remove('hidden');
         }
+
+        // --- NEW EVENT LISTENERS ---
+
+        // 1. Tabata Preset Logic
+        tabataBtn.addEventListener('click', () => {
+            document.getElementById('work-in').value = 20;
+            document.getElementById('rest-in').value = 10;
+            document.getElementById('rounds-in').value = 8;
+        });
+
+        // 2. SFX Toggle Logic
+        sfxBtn.addEventListener('click', () => {
+            isMuted = !isMuted;
+            sfxBtn.classList.toggle('sfx-muted');
+        });
 
         startBtn.addEventListener('click', startWorkout);
         resetBtn.addEventListener('click', resetWorkout);
