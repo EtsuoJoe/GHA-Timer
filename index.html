@@ -169,14 +169,15 @@
         /* --- SFX BUTTON (On the TV Casing) --- */
         #sfx-btn {
             position: absolute;
-            bottom: 4%; /* Placed on the bottom bezel */
+            /* MOVED UP from 4% to 8% */
+            bottom: 8%; 
             left: 50%;
             transform: translateX(-50%);
             
-            background: #222; /* Dark plastic look */
+            background: #222; 
             color: #888;
             border: 2px solid #444;
-            border-bottom: 4px solid #111; /* 3D effect */
+            border-bottom: 4px solid #111; 
             border-radius: 4px;
             
             font-family: sans-serif;
@@ -195,18 +196,16 @@
             transform: translateX(-50%) translateY(2px);
         }
 
-        /* The little LED light on the button */
         #sfx-led {
             width: 1vw;
             height: 1vw;
             border-radius: 50%;
-            background-color: #39ff14; /* Default ON Green */
+            background-color: #39ff14; 
             box-shadow: 0 0 5px #39ff14;
         }
         
-        /* Muted State Class */
         .sfx-muted #sfx-led {
-            background-color: #ff0000; /* Red for OFF */
+            background-color: #ff0000; 
             box-shadow: 0 0 5px #ff0000;
         }
 
@@ -261,27 +260,26 @@
         .blinking { animation: fast-blink 0.5s infinite; color: orange !important; }
 
 
-        /* --- FIX FOR ULTRAWIDE MONITORS --- */
-        /* Since the image caps at 800px width, we must CAP the font sizes too. 
-           Otherwise 'vw' keeps growing and the text explodes out of the TV.
-           The math: 1vw of 800px = 8px. So 3vw = 24px. */
-        
+        /* --- DESKTOP / ULTRAWIDE FIX --- */
+        /* I have significantly increased these pixel values to fill out the 800px image */
         @media (min-width: 800px) {
-            .input-group label { font-size: 24px; } /* 3vw -> 24px */
-            input[type="number"] { font-size: 24px; width: 72px; } /* 3vw -> 24px */
-            .checkbox-group label { font-size: 16px; } /* 2vw -> 16px */
-            input[type="checkbox"] { width: 16px; height: 16px; } /* 2vw -> 16px */
-            #start-btn { font-size: 28px; } /* 3.5vw -> 28px */
+            .input-group label { font-size: 32px; } /* Bigger Labels */
+            input[type="number"] { font-size: 40px; width: 110px; } /* Much Bigger Inputs */
             
-            #tabata-btn { font-size: 16px; }
+            .checkbox-group label { font-size: 20px; } 
+            input[type="checkbox"] { width: 25px; height: 25px; } 
             
-            #status-label { font-size: 40px; } /* 5vw -> 40px */
-            #time-remaining { font-size: 88px; } /* 11vw -> 88px */
-            #rounds-tracker { font-size: 24px; } /* 3vw -> 24px */
-            #reset-btn { font-size: 16px; } /* 2vw -> 16px */
+            #start-btn { font-size: 36px; padding: 5px 20px; } 
             
-            #sfx-btn { font-size: 12px; }
-            #sfx-led { width: 8px; height: 8px; }
+            #tabata-btn { font-size: 20px; margin-bottom: 20px;}
+            
+            #status-label { font-size: 50px; } 
+            #time-remaining { font-size: 110px; } /* Huge Timer */
+            #rounds-tracker { font-size: 30px; } 
+            #reset-btn { font-size: 20px; } 
+            
+            #sfx-btn { font-size: 14px; bottom: 50px; } /* Fixed pixel position for desktop */
+            #sfx-led { width: 10px; height: 10px; }
         }
 
         /* --- MOBILE SCREEN DETECTOR --- */
@@ -298,7 +296,7 @@
             #setup-area { padding-bottom: 2%; }
             
             #tabata-btn { font-size: 4vw; }
-            #sfx-btn { font-size: 3vw; bottom: 6%; width: max-content;}
+            #sfx-btn { font-size: 3vw; bottom: 8%; width: max-content;}
             #sfx-led { width: 3vw; height: 3vw; }
         }
 
@@ -415,8 +413,16 @@
             }
             isWorking = !isWorking;
             if (isWorking) {
-                playSoundFile('work.mp3');
-                setStatus("WORK!", "var(--crt-green)");
+                
+                // FINAL ROUND LOGIC
+                if(currentRound === totalRounds) {
+                     playSoundFile('final.mp3'); // Play special sound
+                     setStatus("FINAL!", "#ff3333"); // Optional: Red text for final
+                } else {
+                     playSoundFile('work.mp3');
+                     setStatus("WORK!", "var(--crt-green)");
+                }
+                
                 timeLeft = workSecs;
             } else {
                 playSoundFile('rest.mp3');
@@ -433,8 +439,16 @@
 
         function startActualWorkRound() {
             isWorking = true;
-            playSoundFile('work.mp3');
-            setStatus("WORK!", "var(--crt-green)");
+            
+            // Check for Final Round immediately (in case user sets 1 round)
+            if(currentRound === totalRounds) {
+                 playSoundFile('final.mp3');
+                 setStatus("FINAL!", "#ff3333");
+            } else {
+                 playSoundFile('work.mp3');
+                 setStatus("WORK!", "var(--crt-green)");
+            }
+            
             timeLeft = workSecs;
             updateDisplay();
         }
@@ -483,16 +497,13 @@
             setupArea.classList.remove('hidden');
         }
 
-        // --- NEW EVENT LISTENERS ---
-
-        // 1. Tabata Preset Logic
+        // --- LISTENERS ---
         tabataBtn.addEventListener('click', () => {
             document.getElementById('work-in').value = 20;
             document.getElementById('rest-in').value = 10;
             document.getElementById('rounds-in').value = 8;
         });
 
-        // 2. SFX Toggle Logic
         sfxBtn.addEventListener('click', () => {
             isMuted = !isMuted;
             sfxBtn.classList.toggle('sfx-muted');
